@@ -1,5 +1,9 @@
 # AI Assistant Rules
 
+## Environment Variable Disclosures
+
+**CRITICAL:** After finishing any milestone, phase, or goal, the AI Assistant MUST explicitly inform the user if any new environment variables (`.env` or `.env.local`) are required to run the updated project locally. Clearly list the required variables and briefly explain what they are for in the final response.
+
 ## Component Organization
 
 When creating or refactoring components in the `components/` directory, always organize them into appropriate categorized subdirectories based on their type, rather than placing them directly in the root of the `components/` folder or a generic `components/ui` folder.

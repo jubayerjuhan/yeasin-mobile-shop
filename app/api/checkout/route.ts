@@ -48,7 +48,7 @@ export async function POST(request: Request) {
           product_data: {
             name: product.name,
             description: product.shortDescription,
-            images: [`${getBaseUrl(request)}${product.image}`],
+            images: [product.image.startsWith("http") ? product.image : `${getBaseUrl(request)}${product.image}`],
           },
           unit_amount: product.price * 100,
         },
@@ -63,39 +63,46 @@ export async function POST(request: Request) {
     );
   }
 
-  const stripe = new Stripe(secretKey);
-  const session = await stripe.checkout.sessions.create({
-    mode: "payment",
-    line_items: lineItems,
-    success_url: `${getBaseUrl(request)}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${getBaseUrl(request)}/checkout/cancel`,
-    billing_address_collection: "required",
-    phone_number_collection: {
-      enabled: true,
-    },
+  const stripe = new Stripe(secretKey, {
+    apiVersion: "2026-05-27.dahlia" as any,
   });
+  try {
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      line_items: lineItems,
+      success_url: `${getBaseUrl(request)}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${getBaseUrl(request)}/checkout/cancel`,
+      billing_address_collection: "required",
+      phone_number_collection: {
+        enabled: true,
+      },
+    });
 
-  createOrder({
-    stripeSessionId: session.id,
-    customerEmail: null,
-    amountTotal: lineItems.reduce(
-      (sum, item) => sum + item.price_data.unit_amount * item.quantity,
-      0,
-    ) / 100,
-    currency: "bdt",
-    paymentStatus: "pending",
-    fulfillmentStatus: "unfulfilled",
-    items: lineItems.map((item) => ({
-      productSlug:
-        products.find((product) => product.name === item.price_data.product_data.name)
-          ?.slug ?? "unknown",
-      productName: item.price_data.product_data.name,
-      quantity: item.quantity,
-      unitPrice: item.price_data.unit_amount / 100,
-    })),
-  });
+    await createOrder({
+      stripeSessionId: session.id,
+      customerEmail: null,
+      amountTotal: lineItems.reduce(
+        (sum, item) => sum + item.price_data.unit_amount * item.quantity,
+        0,
+      ) / 100,
+      currency: "bdt",
+      paymentStatus: "pending",
+      fulfillmentStatus: "unfulfilled",
+      items: lineItems.map((item) => ({
+        productSlug:
+          products.find((product) => product.name === item.price_data.product_data.name)
+            ?.slug ?? "unknown",
+        productName: item.price_data.product_data.name,
+        quantity: item.quantity,
+        unitPrice: item.price_data.unit_amount / 100,
+      })),
+    });
 
-  return NextResponse.json({ url: session.url });
+    return NextResponse.json({ url: session.url });
+  } catch (error: any) {
+    console.error("Stripe error:", error);
+    return NextResponse.json({ error: error.message || "Something went wrong" }, { status: 500 });
+  }
 }
 
 function getBaseUrl(request: Request) {

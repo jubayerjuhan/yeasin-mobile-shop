@@ -5,6 +5,7 @@ import { ProductCard } from "@/components/card/product-card";
 import { StoreHeader } from "@/components/layout/store-header";
 import { getCategories, getFeaturedProducts, getProducts } from "@/lib/db";
 import { siteConfig } from "@/lib/site";
+import { ArrowRight, ShoppingBag, Zap, ShieldCheck, Star } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -18,18 +19,18 @@ const highlights = [
 const perks = [
   {
     title: "Curated featured products",
-    copy:
-      "Hero SKUs, bundle offers, and premium daily-use gadgets are surfaced first for faster conversion.",
+    copy: "Hero SKUs, bundle offers, and premium daily-use gadgets are surfaced first for faster conversion.",
+    icon: <Star className="w-6 h-6 text-black" />,
   },
   {
     title: "Commerce-first browsing",
-    copy:
-      "Category filtering, product pages, cart state, and clear pricing keep the journey focused on buying.",
+    copy: "Category filtering, product pages, cart state, and clear pricing keep the journey focused on buying.",
+    icon: <Zap className="w-6 h-6 text-black" />,
   },
   {
     title: "Stripe-ready payment flow",
-    copy:
-      "Hosted checkout is wired in code so test keys can be dropped in without rebuilding the storefront architecture.",
+    copy: "Hosted checkout is wired in code so test keys can be dropped in without rebuilding the storefront architecture.",
+    icon: <ShieldCheck className="w-6 h-6 text-black" />,
   },
 ];
 
@@ -44,7 +45,7 @@ export default async function Home() {
       <main>
         <section className="hero" id="home">
           <Image
-            className="hero-media"
+            className="hero-media animate-in fade-in duration-1000"
             src="/assets/shop-hero.png"
             alt="Mobile phones and accessories displayed inside a phone shop"
             fill
@@ -52,17 +53,22 @@ export default async function Home() {
             sizes="100vw"
           />
           <div className="hero-shade" />
-          <div className="hero-content">
-            <p className="eyebrow">Tech e-commerce storefront for phones and accessories</p>
-            <h1>Bangladesh-ready gadget shopping with premium storefront energy.</h1>
+          <div className="hero-content animate-in slide-in-from-bottom-8 fade-in duration-1000 fill-mode-both">
+            <p className="eyebrow">Tech e-commerce storefront</p>
+            <h1>Bangladesh-ready gadget shopping with premium energy.</h1>
             <p className="hero-copy">
               {siteConfig.name} now works like a modern store: featured products,
-              searchable catalog, cart flow, product pages, and Stripe-backed
-              checkout wiring.
+              searchable catalog, cart flow, product pages, and Stripe-backed checkout wiring.
             </p>
-            <div className="hero-actions">
-              <a className="btn primary" href="#catalog">Shop Now</a>
-              <Link className="btn secondary" href="/checkout">Stripe Checkout</Link>
+            <div className="hero-actions animate-in slide-in-from-bottom-4 fade-in duration-1000 delay-300 fill-mode-both">
+              <a className="btn primary flex items-center gap-2" href="#catalog">
+                <ShoppingBag className="w-4 h-4" />
+                Shop Now
+              </a>
+              <Link className="btn secondary flex items-center gap-2" href="/checkout">
+                Stripe Checkout
+                <ArrowRight className="w-4 h-4" />
+              </Link>
             </div>
           </div>
         </section>
@@ -105,11 +111,13 @@ export default async function Home() {
           </div>
           <div className="perks-grid">
             {perks.map((perk) => (
-              <article className="perk-card" key={perk.title}>
-                <span />
+              <article className="perk-card group hover:-translate-y-1 transition-transform duration-300" key={perk.title}>
+                <div className="w-12 h-12 bg-black/5 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                  {perk.icon}
+                </div>
                 <div>
-                  <h3>{perk.title}</h3>
-                  <p>{perk.copy}</p>
+                  <h3 className="text-xl font-bold mb-3">{perk.title}</h3>
+                  <p className="text-black/60 leading-relaxed">{perk.copy}</p>
                 </div>
               </article>
             ))}
