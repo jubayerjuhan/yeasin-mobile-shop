@@ -17,7 +17,8 @@ export async function middleware(request: NextRequest) {
     });
   }
 
-  const session = await getSession();
+  const sessionToken = request.cookies.get("session")?.value;
+  const session = await getSession(sessionToken);
 
   if (isAdminRoute && !isLoginRoute) {
     if (!session) {

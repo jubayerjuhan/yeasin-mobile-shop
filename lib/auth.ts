@@ -1,5 +1,4 @@
 import { SignJWT, jwtVerify } from "jose";
-import { cookies } from "next/headers";
 
 const secretKey = process.env.JWT_SECRET || "fallback-super-secret-key-change-me";
 const key = new TextEncoder().encode(secretKey);
@@ -19,9 +18,7 @@ export async function decrypt(input: string): Promise<any> {
   return payload;
 }
 
-export async function getSession() {
-  const cookieStore = await cookies();
-  const session = cookieStore.get("session")?.value;
+export async function getSession(session?: string | null) {
   if (!session) return null;
   
   try {
