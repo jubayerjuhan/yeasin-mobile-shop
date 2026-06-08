@@ -33,12 +33,10 @@ const perks = [
   },
 ];
 
-const featuredProducts = getFeaturedProducts();
-
-export default function Home() {
-  const featuredProducts = getFeaturedProducts();
-  const products = getProducts();
-  const categories = getCategories();
+export default async function Home() {
+  const featuredProducts = await getFeaturedProducts();
+  const products = await getProducts();
+  const categories = await getCategories();
 
   return (
     <>

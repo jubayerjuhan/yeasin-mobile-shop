@@ -1,16 +1,14 @@
 import type { Metadata } from "next";
-import { Manrope, Noto_Sans_Bengali } from "next/font/google";
+import { Manrope, Noto_Sans_Bengali, Geist } from "next/font/google";
 import { CartDrawer } from "@/components/drawer/cart-drawer";
 import { StoreProvider } from "@/components/provider/store-provider";
 import { getProducts } from "@/lib/db";
 import "./globals.css";
+import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-const manrope = Manrope({
-  subsets: ["latin"],
-  variable: "--font-sans",
-});
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const notoSansBengali = Noto_Sans_Bengali({
   subsets: ["bengali"],
@@ -26,16 +24,16 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const products = getProducts();
+  const products = await getProducts();
 
   return (
-    <html lang="en">
-      <body className={`${manrope.variable} ${notoSansBengali.variable}`}>
+    <html lang="en" className={cn("font-sans", geist.variable)}>
+      <body className={`${geist.variable} ${notoSansBengali.variable}`}>
         <StoreProvider products={products}>
           {children}
           <CartDrawer />

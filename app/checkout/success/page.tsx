@@ -14,9 +14,9 @@ export default async function SuccessPage({
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
     const session = await stripe.checkout.sessions.retrieve(sessionId);
     paymentStatus = session.payment_status === "paid" ? "paid" : session.payment_status;
-    const existing = getOrderBySessionId(sessionId);
+    const existing = await getOrderBySessionId(sessionId);
     if (existing) {
-      updateOrderPaymentStatus(sessionId, paymentStatus, session.customer_details?.email ?? null);
+      await updateOrderPaymentStatus(sessionId, paymentStatus, session.customer_details?.email ?? null);
     }
   }
 

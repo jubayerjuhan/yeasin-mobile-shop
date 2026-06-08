@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const products = getProducts();
+  const products = await getProducts();
   const body = (await request.json()) as { items?: RequestItem[] };
   const items = body.items ?? [];
 

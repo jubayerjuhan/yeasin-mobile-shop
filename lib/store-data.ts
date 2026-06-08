@@ -6,7 +6,7 @@ export type ProductCategory =
   | "accessories";
 
 export type CategoryRecord = {
-  id: number;
+  id: string;
   slug: string;
   name: string;
   description: string;
@@ -14,10 +14,10 @@ export type CategoryRecord = {
 };
 
 export type ProductRecord = {
-  id: number;
+  id: string;
   slug: string;
   name: string;
-  categoryId: number;
+  categoryId: string;
   categorySlug: string;
   categoryName: string;
   price: number;
