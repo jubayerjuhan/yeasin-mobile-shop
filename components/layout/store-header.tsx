@@ -11,6 +11,7 @@ const links = [
   { href: "#featured", label: "Featured" },
   { href: "#catalog", label: "Shop" },
   { href: "#why-us", label: "Why Us" },
+  { href: "#contact", label: "Contact" },
 ];
 
 export function StoreHeader() {
@@ -19,78 +20,109 @@ export function StoreHeader() {
   const { totalItems, openCart } = useStore();
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  return (
-    <header
-      className={`store-header${isScrolled ? " is-scrolled" : ""}${
-        isOpen ? " is-open" : ""
-      }`}
-    >
-      <Link className="brand brand-ecom" href="/">
-        <span className="brand-mark brand-mark-large flex items-center justify-center bg-white shadow-sm border border-black/5">
-          <Image
-            src="/assets/yeasin-logo.svg"
-            alt={`${siteConfig.name} logo`}
-            width={32}
-            height={32}
-            className="w-8 h-8"
-          />
-        </span>
-        <span className="hidden sm:block">
-          <strong className="text-lg font-bold tracking-tight">{siteConfig.name}</strong>
-          <small className="text-muted-foreground text-xs font-medium">Smart devices and accessories</small>
-        </span>
-      </Link>
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    document.body.style.overflow = isOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [isOpen]);
 
-      <nav className={isOpen ? "site-nav store-nav is-open" : "site-nav store-nav hidden md:flex"}>
+  return (
+    <>
+      <header className={`store-header${isScrolled ? " is-scrolled" : ""}`}>
+        {/* Brand */}
+        <Link className="brand" href="/" onClick={() => setIsOpen(false)}>
+          <span className="brand-mark">
+            <Image
+              src="/assets/yeasin-logo.svg"
+              alt={`${siteConfig.name} logo`}
+              width={24}
+              height={24}
+            />
+          </span>
+          <span className="hidden sm:block">
+            <strong>{siteConfig.name}</strong>
+            <small>Smart devices &amp; accessories</small>
+          </span>
+        </Link>
+
+        {/* Desktop Nav */}
+        <nav className="store-nav hidden md:flex">
+          {links.map((link) => (
+            <a key={link.href} href={link.href}>
+              {link.label}
+            </a>
+          ))}
+        </nav>
+
+        {/* Actions */}
+        <div className="header-actions">
+
+          <a
+            className="hidden md:flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-full transition-all hover:bg-black/5"
+            href={siteConfig.whatsappUrl}
+            target="_blank"
+            rel="noreferrer"
+            style={{ color: "var(--ink-secondary)", fontSize: "14px" }}
+          >
+            <MessageCircle style={{ width: 15, height: 15 }} />
+            Support
+          </a>
+
+          {/* Cart Button */}
+          <button
+            className="cart-button"
+            type="button"
+            onClick={openCart}
+            aria-label="Open cart"
+          >
+            <ShoppingBag style={{ width: 16, height: 16 }} />
+            <span className="cart-badge">{totalItems}</span>
+          </button>
+
+          {/* Mobile menu toggle */}
+          <button
+            className="md:hidden flex items-center justify-center w-10 h-10 rounded-full transition-all hover:bg-black/5"
+            type="button"
+            aria-label="Toggle menu"
+            aria-expanded={isOpen}
+            onClick={() => setIsOpen((v) => !v)}
+            style={{ border: "1.5px solid var(--line)" }}
+          >
+            {isOpen
+              ? <X style={{ width: 18, height: 18 }} />
+              : <Menu style={{ width: 18, height: 18 }} />
+            }
+          </button>
+        </div>
+      </header>
+
+      {/* Mobile nav overlay */}
+      <div className={`mobile-nav-overlay${isOpen ? " is-open" : ""}`}>
         {links.map((link) => (
-          <a key={link.href} href={link.href} onClick={() => setIsOpen(false)} className="text-sm font-medium text-black/70 hover:text-black transition-colors">
+          <a
+            key={link.href}
+            href={link.href}
+            onClick={() => setIsOpen(false)}
+          >
             {link.label}
           </a>
         ))}
-      </nav>
-
-      <div className="header-actions flex items-center gap-4">
-        <Link className="hidden md:flex text-sm font-medium text-black/70 hover:text-black transition-colors" href="/admin">
-          Admin
-        </Link>
-        <a 
-          className="hidden md:flex items-center gap-1.5 text-sm font-medium text-black/70 hover:text-black transition-colors" 
-          href={siteConfig.whatsappUrl} 
-          target="_blank" 
-          rel="noreferrer"
-        >
-          <MessageCircle className="w-4 h-4" />
-          Support
-        </a>
-        <button 
-          className="cart-button flex items-center gap-2 bg-black/5 hover:bg-black/10 px-4 py-2 rounded-full transition-all" 
-          type="button" 
-          onClick={openCart}
-        >
-          <ShoppingBag className="w-4 h-4" />
-          <span className="bg-black text-white text-[11px] font-bold w-5 h-5 flex items-center justify-center rounded-full">
-            {totalItems}
-          </span>
-        </button>
-        <button
-          className="md:hidden flex items-center justify-center p-2 rounded-md hover:bg-black/5 transition-colors"
-          type="button"
-          aria-label="Toggle navigation"
-          aria-expanded={isOpen}
-          onClick={() => setIsOpen((value) => !value)}
-        >
-          {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
+        <div style={{ marginTop: 40, display: "flex", gap: 12 }}>
+          <Link
+            className="btn primary"
+            href="/#catalog"
+            onClick={() => setIsOpen(false)}
+          >
+            Shop Now
+          </Link>
+        </div>
       </div>
-    </header>
+    </>
   );
 }
-

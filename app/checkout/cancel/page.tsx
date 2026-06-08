@@ -6,7 +6,7 @@ export default function CancelPage() {
       <div className="status-card">
         <p className="eyebrow">Checkout canceled</p>
         <h1 className="page-title">Your payment was not completed.</h1>
-        <p>You can return to the cart, change quantities, and try Stripe checkout again.</p>
+        <p>You can return to the cart, adjust your items, and try checking out again.</p>
         <Link className="btn primary" href="/cart">
           Return to Cart
         </Link>

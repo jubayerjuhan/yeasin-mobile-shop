@@ -1,7 +1,23 @@
 import Link from "next/link";
+import Image from "next/image";
 import { logoutAction } from "./login/actions";
 import { Toaster } from "@/components/toast/sonner";
-import { LayoutDashboard, Package, Grid, ShoppingCart, LogOut } from "lucide-react";
+import {
+  LayoutDashboard,
+  Package,
+  Grid,
+  ShoppingCart,
+  LogOut,
+  ExternalLink,
+  Zap,
+} from "lucide-react";
+
+const navLinks = [
+  { href: "/admin", label: "Overview", icon: LayoutDashboard },
+  { href: "/admin/products", label: "Products", icon: Package },
+  { href: "/admin/categories", label: "Categories", icon: Grid },
+  { href: "/admin/orders", label: "Orders", icon: ShoppingCart },
+];
 
 export default function AdminLayout({
   children,
@@ -9,46 +25,58 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-muted/40 w-full flex">
-      <aside className="fixed inset-y-0 left-0 z-10 w-64 flex flex-col border-r bg-background px-4 py-6">
-        <div className="mb-8 px-2">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Admin Panel</p>
-          <h1 className="text-2xl font-bold tracking-tight">Store Control</h1>
-        </div>
-        
-        <nav className="flex-1 space-y-2">
-          <Link href="/admin" className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-muted hover:text-foreground text-muted-foreground">
-            <LayoutDashboard className="h-4 w-4" />
-            Overview
-          </Link>
-          <Link href="/admin/products" className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-muted hover:text-foreground text-muted-foreground">
-            <Package className="h-4 w-4" />
-            Products
-          </Link>
-          <Link href="/admin/categories" className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-muted hover:text-foreground text-muted-foreground">
-            <Grid className="h-4 w-4" />
-            Categories
-          </Link>
-          <Link href="/admin/orders" className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-muted hover:text-foreground text-muted-foreground">
-            <ShoppingCart className="h-4 w-4" />
-            Orders
+    <div className="admin-shell dark">
+      {/* Sidebar */}
+      <aside className="admin-sidebar">
+        {/* Brand */}
+        <Link className="admin-sidebar-brand" href="/admin">
+          <div className="admin-brand-mark">
+            <Zap style={{ width: 18, height: 18, color: "var(--admin-accent)" }} />
+          </div>
+          <div className="admin-brand-name">
+            <strong>Yeasin Shop</strong>
+            <small>Admin Console</small>
+          </div>
+        </Link>
+
+        {/* Nav */}
+        <nav className="admin-nav">
+          <p className="admin-nav-section">Navigation</p>
+          {navLinks.map(({ href, label, icon: Icon }) => (
+            <Link key={href} href={href} className="admin-nav-link">
+              <Icon />
+              {label}
+            </Link>
+          ))}
+
+          <p className="admin-nav-section" style={{ marginTop: 24 }}>Storefront</p>
+          <Link
+            href="/"
+            className="admin-nav-link"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <ExternalLink />
+            View Store
           </Link>
         </nav>
-        
-        <div className="mt-auto">
+
+        {/* Logout */}
+        <div className="admin-sidebar-footer">
           <form action={logoutAction}>
-            <button type="submit" className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-red-100 hover:text-red-700 text-red-600">
-              <LogOut className="h-4 w-4" />
-              Logout
+            <button type="submit" className="admin-logout-btn">
+              <LogOut style={{ width: 16, height: 16 }} />
+              Sign Out
             </button>
           </form>
         </div>
       </aside>
-      
-      <main className="flex-1 ml-64 p-8">
+
+      {/* Main */}
+      <main className="admin-main">
         {children}
       </main>
-      
+
       <Toaster richColors position="top-right" />
     </div>
   );

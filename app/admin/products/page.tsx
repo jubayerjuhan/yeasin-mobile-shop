@@ -3,20 +3,19 @@ import {
   deleteProductAction,
   updateProductAction,
 } from "@/app/admin/actions";
-import { getCategories, getProducts, getProductsPaginated } from "@/lib/db";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/card/card";
-import { Input } from "@/components/input/input";
-import { Label } from "@/components/label/label";
+import { getCategories, getProductsPaginated } from "@/lib/db";
+import { ImageUploader } from "@/components/image-uploader/image-uploader";
 import { AdminForm, ActionForm, SubmitButton } from "@/components/form/admin-form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/select/select";
-import { ImageUploader } from "@/components/image-uploader/image-uploader";
-import { Button, buttonVariants } from "@/components/button/button";
-import { Search, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { Search, ChevronLeft, ChevronRight, Trash2, Plus } from "lucide-react";
+import Image from "next/image";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminProductsPage(props: { searchParams: Promise<{ query?: string, page?: string }> }) {
+export default async function AdminProductsPage(props: {
+  searchParams: Promise<{ query?: string; page?: string }>;
+}) {
   const searchParams = await props.searchParams;
   const page = parseInt(searchParams.page || "1");
   const query = searchParams.query || "";
@@ -25,216 +24,338 @@ export default async function AdminProductsPage(props: { searchParams: Promise<{
   const categories = await getCategories();
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      {/* Header */}
+      <div className="admin-page-header">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Products</h2>
-          <p className="text-muted-foreground mt-2">Manage your catalog, pricing, and stock.</p>
+          <h1 className="admin-page-title">Products</h1>
+          <p className="admin-page-subtitle">Manage your catalog, pricing, and stock.</p>
         </div>
-        
-        <form method="GET" action="/admin/products" className="flex items-center gap-2">
-          <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input 
-              name="query" 
-              type="search" 
-              placeholder="Search name or SKU..." 
-              className="pl-8 w-full md:w-[300px]" 
+
+        <form method="GET" action="/admin/products" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div className="admin-search-wrap">
+            <Search />
+            <input
+              name="query"
+              type="search"
+              placeholder="Search name or SKU…"
+              className="admin-search-input"
               defaultValue={query}
             />
           </div>
-          <Button type="submit" variant="secondary">Search</Button>
+          <button type="submit" className="admin-btn admin-btn-secondary">
+            Search
+          </button>
         </form>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-3">
-        <div className="lg:col-span-1">
-          <Card>
-            <CardHeader>
-              <CardTitle>Create Product</CardTitle>
-              <CardDescription>Add a new device or accessory.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <AdminForm action={createProductAction} submitLabel="Create Product" className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Name</Label>
-                  <Input id="name" name="name" placeholder="iPhone 15 Pro" required />
+      <div style={{ display: "grid", gridTemplateColumns: "340px 1fr", gap: 20, alignItems: "start" }}>
+        {/* Create form */}
+        <div className="admin-card" style={{ position: "sticky", top: 24 }}>
+          <div
+            style={{
+              padding: "18px 20px",
+              borderBottom: "1px solid var(--admin-border)",
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+            }}
+          >
+            <div
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: 8,
+                background: "var(--admin-accent-bg)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Plus style={{ width: 14, height: 14, color: "var(--admin-accent)" }} />
+            </div>
+            <div>
+              <h2
+                style={{
+                  margin: 0,
+                  fontSize: 15,
+                  fontWeight: 700,
+                  color: "var(--admin-text)",
+                  letterSpacing: "-0.02em",
+                }}
+              >
+                Create Product
+              </h2>
+              <p style={{ margin: 0, fontSize: 12, color: "var(--admin-text-2)" }}>
+                Add a new device or accessory
+              </p>
+            </div>
+          </div>
+          <div style={{ padding: "20px" }}>
+            <AdminForm action={createProductAction} submitLabel="Create Product" className="space-y-4">
+              {[
+                { id: "name", label: "Name", placeholder: "iPhone 15 Pro" },
+                { id: "slug", label: "Slug", placeholder: "iphone-15-pro" },
+                { id: "sku", label: "SKU", placeholder: "IP15P-256-BLK" },
+              ].map(({ id, label, placeholder }) => (
+                <div key={id} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <label className="admin-label" htmlFor={`create-${id}`}>{label}</label>
+                  <input className="admin-input" id={`create-${id}`} name={id} placeholder={placeholder} required />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="slug">Slug</Label>
-                  <Input id="slug" name="slug" placeholder="iphone-15-pro" required />
+              ))}
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <label className="admin-label" htmlFor="create-categoryId">Category</label>
+                <Select name="categoryId" required>
+                  <SelectTrigger className="admin-input" style={{ height: "auto" }}><SelectValue placeholder="Select a category" /></SelectTrigger>
+                  <SelectContent>
+                    {categories.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <label className="admin-label">Price (BDT)</label>
+                  <input className="admin-input" name="price" type="number" placeholder="150000" required />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="categoryId">Category</Label>
-                  <Select name="categoryId" required>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <label className="admin-label">Compare At</label>
+                  <input className="admin-input" name="compareAtPrice" type="number" placeholder="160000" />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="sku">SKU</Label>
-                  <Input id="sku" name="sku" placeholder="IP15P-256-BLK" required />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="price">Price (BDT)</Label>
-                    <Input id="price" name="price" type="number" placeholder="150000" required />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="compareAtPrice">Compare At</Label>
-                    <Input id="compareAtPrice" name="compareAtPrice" type="number" placeholder="160000" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="image">Product Image</Label>
-                  <ImageUploader name="image" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="badge">Badge</Label>
-                  <Input id="badge" name="badge" placeholder="New / Hot" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="shortDescription">Short Description</Label>
-                  <textarea id="shortDescription" name="shortDescription" className="flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50" rows={2} required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="description">Detailed Description</Label>
-                  <textarea id="description" name="description" className="flex min-h-[100px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50" rows={4} required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="specs">Specs (One per line)</Label>
-                  <textarea id="specs" name="specs" className="flex min-h-[100px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50" rows={4} />
-                </div>
-                <div className="flex gap-4">
-                  <label className="flex items-center gap-2">
-                    <input type="checkbox" name="featured" className="rounded border-gray-300 text-primary focus:ring-primary" />
-                    <span className="text-sm">Featured</span>
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <input type="checkbox" name="inStock" defaultChecked className="rounded border-gray-300 text-primary focus:ring-primary" />
-                    <span className="text-sm">In Stock</span>
-                  </label>
-                </div>
-              </AdminForm>
-            </CardContent>
-          </Card>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <label className="admin-label">Product Image</label>
+                <ImageUploader name="image" />
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <label className="admin-label">Badge</label>
+                <input className="admin-input" name="badge" placeholder="New / Hot" />
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <label className="admin-label">Short Description</label>
+                <textarea
+                  name="shortDescription"
+                  className="admin-input admin-textarea"
+                  rows={2}
+                  required
+                  placeholder="Brief product description…"
+                />
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <label className="admin-label">Detailed Description</label>
+                <textarea
+                  name="description"
+                  className="admin-input admin-textarea"
+                  rows={4}
+                  required
+                  placeholder="Full product description…"
+                />
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <label className="admin-label">Specs (one per line)</label>
+                <textarea
+                  name="specs"
+                  className="admin-input admin-textarea"
+                  rows={4}
+                  placeholder="6.1-inch display&#10;A17 Pro chip&#10;…"
+                />
+              </div>
+              <div style={{ display: "flex", gap: 24, marginTop: 8 }}>
+                <label className="admin-checkbox-wrapper">
+                  <input type="checkbox" name="featured" className="admin-checkbox-input" />
+                  <span className="admin-checkbox-label">Featured</span>
+                </label>
+                <label className="admin-checkbox-wrapper">
+                  <input type="checkbox" name="inStock" defaultChecked className="admin-checkbox-input" />
+                  <span className="admin-checkbox-label">In Stock</span>
+                </label>
+              </div>
+            </AdminForm>
+          </div>
         </div>
 
-        <div className="lg:col-span-2 space-y-4">
+        {/* Product list */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {products.length === 0 && (
+            <div
+              style={{
+                padding: "48px 24px",
+                textAlign: "center",
+                background: "var(--admin-surface)",
+                borderRadius: 16,
+                border: "1px solid var(--admin-border)",
+              }}
+            >
+              <p style={{ margin: 0, color: "var(--admin-text-2)", fontSize: 14 }}>
+                No products found. Create one or try a different search.
+              </p>
+            </div>
+          )}
+
           {products.map((product) => (
-            <Card key={product.id}>
-              <CardContent className="p-6">
-                <div className="flex gap-6 items-start">
-                  <ActionForm action={updateProductAction} className="flex-1 space-y-4">
+            <div key={product.id} className="admin-card">
+              <div style={{ padding: "20px" }}>
+                <div style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
+                  {/* Product image thumbnail */}
+                  {product.image && (
+                    <div
+                      style={{
+                        width: 80,
+                        height: 80,
+                        borderRadius: 12,
+                        background: "var(--admin-surface-2)",
+                        border: "1px solid var(--admin-border)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                        overflow: "hidden",
+                        padding: 8,
+                      }}
+                    >
+                      <Image
+                        src={product.image}
+                        alt={product.name}
+                        width={64}
+                        height={64}
+                        style={{ objectFit: "contain" }}
+                      />
+                    </div>
+                  )}
+
+                  <div style={{ flex: 1 }}><ActionForm action={updateProductAction}>
                     <input type="hidden" name="id" value={product.id} />
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Name</Label>
-                        <Input name="name" defaultValue={product.name} required />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Slug</Label>
-                        <Input name="slug" defaultValue={product.slug} required />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Category</Label>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 }}>
+                      {[
+                        { label: "Name", name: "name", value: product.name },
+                        { label: "Slug", name: "slug", value: product.slug },
+                        { label: "SKU", name: "sku", value: product.sku },
+                      ].map(({ label, name, value }) => (
+                        <div key={name} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                          <label className="admin-label">{label}</label>
+                          <input className="admin-input" name={name} defaultValue={value} required />
+                        </div>
+                      ))}
+                      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                        <label className="admin-label">Category</label>
                         <Select name="categoryId" defaultValue={product.categoryId} required>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
+                          <SelectTrigger className="admin-input" style={{ height: "auto" }}><SelectValue /></SelectTrigger>
                           <SelectContent>
-                            {categories.map((category) => (
-                              <SelectItem key={category.id} value={category.id}>
-                                {category.name}
-                              </SelectItem>
+                            {categories.map((c) => (
+                              <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                       </div>
-                      <div className="space-y-2">
-                        <Label>SKU</Label>
-                        <Input name="sku" defaultValue={product.sku} required />
+                      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                        <label className="admin-label">Price (BDT)</label>
+                        <input className="admin-input" name="price" type="number" defaultValue={product.price} required />
                       </div>
-                      <div className="space-y-2">
-                        <Label>Price</Label>
-                        <Input name="price" type="number" defaultValue={product.price} required />
+                      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                        <label className="admin-label">Compare At</label>
+                        <input className="admin-input" name="compareAtPrice" type="number" defaultValue={product.compareAtPrice ?? ""} />
                       </div>
-                      <div className="space-y-2">
-                        <Label>Compare At Price</Label>
-                        <Input name="compareAtPrice" type="number" defaultValue={product.compareAtPrice ?? ""} />
-                      </div>
-                      <div className="space-y-2 col-span-2">
-                        <Label>Product Image</Label>
+                      <div style={{ gridColumn: "1 / -1", display: "flex", flexDirection: "column", gap: 8 }}>
+                        <label className="admin-label">Product Image</label>
                         <ImageUploader name="image" defaultValue={product.image} />
                       </div>
-                      <div className="space-y-2 col-span-2">
-                        <Label>Badge</Label>
-                        <Input name="badge" defaultValue={product.badge ?? ""} />
+                      <div style={{ gridColumn: "1 / -1", display: "flex", flexDirection: "column", gap: 8 }}>
+                        <label className="admin-label">Badge</label>
+                        <input className="admin-input" name="badge" defaultValue={product.badge ?? ""} />
                       </div>
-                      <div className="space-y-2 col-span-2">
-                        <Label>Short Description</Label>
-                        <textarea name="shortDescription" defaultValue={product.shortDescription} className="flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50" rows={2} required />
+                      <div style={{ gridColumn: "1 / -1", display: "flex", flexDirection: "column", gap: 8 }}>
+                        <label className="admin-label">Short Description</label>
+                        <textarea
+                          name="shortDescription"
+                          defaultValue={product.shortDescription}
+                          className="admin-input admin-textarea"
+                          rows={2}
+                          required
+                        />
                       </div>
-                      <div className="space-y-2 col-span-2">
-                        <Label>Description</Label>
-                        <textarea name="description" defaultValue={product.description} className="flex min-h-[100px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50" rows={4} required />
+                      <div style={{ gridColumn: "1 / -1", display: "flex", flexDirection: "column", gap: 8 }}>
+                        <label className="admin-label">Description</label>
+                        <textarea
+                          name="description"
+                          defaultValue={product.description}
+                          className="admin-input admin-textarea"
+                          rows={3}
+                          required
+                        />
                       </div>
-                      <div className="space-y-2 col-span-2">
-                        <Label>Specs</Label>
-                        <textarea name="specs" defaultValue={product.specs.join("\n")} className="flex min-h-[100px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50" rows={4} />
+                      <div style={{ gridColumn: "1 / -1", display: "flex", flexDirection: "column", gap: 8 }}>
+                        <label className="admin-label">Specs (one per line)</label>
+                        <textarea
+                          name="specs"
+                          defaultValue={product.specs.join("\n")}
+                          className="admin-input admin-textarea"
+                          rows={3}
+                        />
                       </div>
-                      <div className="flex gap-4 col-span-2">
-                        <label className="flex items-center gap-2">
-                          <input type="checkbox" name="featured" defaultChecked={product.featured} className="rounded border-gray-300 text-primary focus:ring-primary" />
-                          <span className="text-sm">Featured</span>
+                      <div style={{ gridColumn: "1 / -1", display: "flex", gap: 24, marginTop: 8 }}>
+                        <label className="admin-checkbox-wrapper">
+                          <input type="checkbox" name="featured" defaultChecked={product.featured} className="admin-checkbox-input" />
+                          <span className="admin-checkbox-label">Featured</span>
                         </label>
-                        <label className="flex items-center gap-2">
-                          <input type="checkbox" name="inStock" defaultChecked={product.inStock} className="rounded border-gray-300 text-primary focus:ring-primary" />
-                          <span className="text-sm">In Stock</span>
+                        <label className="admin-checkbox-wrapper">
+                          <input type="checkbox" name="inStock" defaultChecked={product.inStock} className="admin-checkbox-input" />
+                          <span className="admin-checkbox-label">In Stock</span>
                         </label>
                       </div>
                     </div>
-                    <div className="pt-2">
                       <SubmitButton label="Save Changes" />
-                    </div>
-                  </ActionForm>
-                  
-                  <div className="pt-8">
+                  </ActionForm></div>
+
+                  {/* Delete */}
+                  <div style={{ paddingTop: 4 }}>
                     <ActionForm action={deleteProductAction}>
                       <input type="hidden" name="id" value={product.id} />
-                      <SubmitButton 
-                        label={<><Trash2 className="w-4 h-4" /><span className="sr-only">Delete</span></>} 
+                      <SubmitButton
+                        label={<><Trash2 style={{ width: 14, height: 14 }} /><span className="sr-only">Delete</span></>}
                         variant="destructive"
-                        className="w-10 h-10 p-0"
+                        className="admin-btn admin-btn-danger admin-btn-icon"
                       />
                     </ActionForm>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-          {products.length === 0 && (
-            <div className="text-center p-12 border rounded-lg bg-muted/40">
-              <p className="text-muted-foreground">No products found. Create one or try a different search.</p>
+              </div>
             </div>
-          )}
+          ))}
 
+          {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-2 pt-4">
-              <Link href={`/admin/products?page=${page - 1}${query ? `&query=${query}` : ""}`} className={buttonVariants({ variant: "outline", size: "icon", className: page <= 1 ? "pointer-events-none opacity-50" : "" })}>
-                <ChevronLeft className="h-4 w-4" />
+            <div className="admin-pagination">
+              <Link
+                href={`/admin/products?page=${page - 1}${query ? `&query=${query}` : ""}`}
+                className="admin-btn admin-btn-secondary admin-btn-icon"
+                style={{
+                  opacity: page <= 1 ? 0.4 : 1,
+                  pointerEvents: page <= 1 ? "none" : "auto",
+                  textDecoration: "none",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <ChevronLeft style={{ width: 16, height: 16 }} />
               </Link>
-              <span className="text-sm font-medium">Page {page} of {totalPages}</span>
-              <Link href={`/admin/products?page=${page + 1}${query ? `&query=${query}` : ""}`} className={buttonVariants({ variant: "outline", size: "icon", className: page >= totalPages ? "pointer-events-none opacity-50" : "" })}>
-                <ChevronRight className="h-4 w-4" />
+              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--admin-text-2)" }}>
+                Page {page} of {totalPages}
+              </span>
+              <Link
+                href={`/admin/products?page=${page + 1}${query ? `&query=${query}` : ""}`}
+                className="admin-btn admin-btn-secondary admin-btn-icon"
+                style={{
+                  opacity: page >= totalPages ? 0.4 : 1,
+                  pointerEvents: page >= totalPages ? "none" : "auto",
+                  textDecoration: "none",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <ChevronRight style={{ width: 16, height: 16 }} />
               </Link>
             </div>
           )}

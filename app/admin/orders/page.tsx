@@ -1,14 +1,12 @@
 import { updateOrderStatusAction } from "@/app/admin/actions";
 import { getOrderItems, getOrdersPaginated } from "@/lib/db";
 import { formatBdt } from "@/lib/money";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/card/card";
 import { Badge } from "@/components/badge/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/select/select";
 import { ActionForm, SubmitButton } from "@/components/form/admin-form";
-import { Input } from "@/components/input/input";
 import { Button, buttonVariants } from "@/components/button/button";
 import Link from "next/link";
-import { Search, ChevronLeft, ChevronRight, Eye } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, Eye, Package } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -20,92 +18,230 @@ const fulfillmentOptions = [
   "canceled",
 ];
 
-export default async function AdminOrdersPage(props: { searchParams: Promise<{ query?: string, page?: string }> }) {
+function paymentBadgeClass(status: string) {
+  if (status === "paid") return "admin-badge paid";
+  if (status === "pending") return "admin-badge pending";
+  return "admin-badge canceled";
+}
+function fulfillmentBadgeClass(status: string) {
+  if (status === "completed") return "admin-badge paid";
+  if (["processing", "shipped"].includes(status)) return "admin-badge processing";
+  if (status === "canceled") return "admin-badge canceled";
+  return "admin-badge secondary";
+}
+
+export default async function AdminOrdersPage(props: {
+  searchParams: Promise<{ query?: string; page?: string }>;
+}) {
   const searchParams = await props.searchParams;
   const page = parseInt(searchParams.page || "1");
   const query = searchParams.query || "";
-  
+
   const { orders, totalPages } = await getOrdersPaginated({ search: query, page, limit: 12 });
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      {/* Header */}
+      <div className="admin-page-header">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Orders</h2>
-          <p className="text-muted-foreground mt-2">Manage customer orders and fulfillment status.</p>
+          <h1 className="admin-page-title">Orders</h1>
+          <p className="admin-page-subtitle">Manage customer orders and fulfillment status.</p>
         </div>
-        
-        <form method="GET" action="/admin/orders" className="flex items-center gap-2">
-          <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input 
-              name="query" 
-              type="search" 
-              placeholder="Search session or email..." 
-              className="pl-8 w-full md:w-[300px]" 
+
+        <form method="GET" action="/admin/orders" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div className="admin-search-wrap">
+            <Search />
+            <input
+              name="query"
+              type="search"
+              placeholder="Search session or email…"
+              className="admin-search-input"
               defaultValue={query}
             />
           </div>
-          <Button type="submit" variant="secondary">Search</Button>
+          <button type="submit" className="admin-btn admin-btn-secondary">
+            Search
+          </button>
         </form>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {/* Orders grid */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
+          gap: 16,
+        }}
+      >
         {orders.length === 0 && (
-          <div className="col-span-full text-center p-12 border rounded-lg bg-muted/40">
-            <p className="text-muted-foreground">No orders found.</p>
+          <div
+            style={{
+              gridColumn: "1 / -1",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "60px 24px",
+              background: "var(--admin-surface)",
+              borderRadius: 16,
+              border: "1px solid var(--admin-border)",
+              textAlign: "center",
+            }}
+          >
+            <div
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: "50%",
+                background: "var(--admin-surface-2)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: 16,
+              }}
+            >
+              <Package style={{ width: 22, height: 22, color: "var(--admin-text-2)" }} />
+            </div>
+            <p style={{ margin: 0, color: "var(--admin-text-2)", fontSize: 14 }}>
+              No orders found.
+            </p>
           </div>
         )}
-        
-        {await Promise.all(orders.map(async (order) => {
-          const items = await getOrderItems(order.id);
-          return (
-            <Card key={order.id} className="flex flex-col">
-              <CardHeader className="pb-4">
-                <div className="flex justify-between items-start gap-4">
+
+        {await Promise.all(
+          orders.map(async (order) => {
+            const items = await getOrderItems(order.id);
+            return (
+              <div key={order.id} className="admin-card" style={{ display: "flex", flexDirection: "column" }}>
+                {/* Card header */}
+                <div
+                  style={{
+                    padding: "18px 20px",
+                    borderBottom: "1px solid var(--admin-border)",
+                    display: "flex",
+                    alignItems: "flex-start",
+                    justifyContent: "space-between",
+                    gap: 12,
+                  }}
+                >
                   <div>
-                    <CardTitle className="text-lg">Order #{order.id.slice(0, 8)}</CardTitle>
-                    <CardDescription className="font-mono text-xs mt-1" title={order.stripeSessionId}>
-                      {order.stripeSessionId.slice(0, 18)}...
-                    </CardDescription>
+                    <p
+                      style={{
+                        margin: "0 0 2px",
+                        fontSize: 15,
+                        fontWeight: 750,
+                        color: "var(--admin-text)",
+                        letterSpacing: "-0.02em",
+                      }}
+                    >
+                      Order #{order.id.slice(0, 8)}
+                    </p>
+                    <p
+                      style={{
+                        margin: 0,
+                        fontSize: 11,
+                        fontFamily: "monospace",
+                        color: "var(--admin-text-2)",
+                      }}
+                    >
+                      {order.stripeSessionId.slice(0, 18)}…
+                    </p>
                   </div>
-                  <div className="flex flex-col gap-2 items-end">
-                    <Badge variant={order.paymentStatus === "paid" ? "default" : "secondary"}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "flex-end" }}>
+                    <span className={paymentBadgeClass(order.paymentStatus)}>
                       {order.paymentStatus}
-                    </Badge>
-                    <Badge variant="outline" className="capitalize">
+                    </span>
+                    <span className={fulfillmentBadgeClass(order.fulfillmentStatus)}>
                       {order.fulfillmentStatus}
-                    </Badge>
+                    </span>
                   </div>
                 </div>
-              </CardHeader>
-              <CardContent className="flex-1 flex flex-col">
-                <div className="flex justify-between items-center mb-6 pb-4 border-b">
-                  <div className="text-sm text-muted-foreground truncate mr-4">
-                    {order.customerEmail ?? "No customer email"}
+
+                {/* Card body */}
+                <div style={{ padding: "16px 20px", flexGrow: 1 }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginBottom: 16,
+                      paddingBottom: 16,
+                      borderBottom: "1px solid var(--admin-border)",
+                    }}
+                  >
+                    <p
+                      style={{
+                        margin: 0,
+                        fontSize: 13,
+                        color: "var(--admin-text-2)",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        maxWidth: "60%",
+                      }}
+                    >
+                      {order.customerEmail ?? "No email"}
+                    </p>
+                    <strong
+                      style={{
+                        fontSize: 16,
+                        fontWeight: 750,
+                        color: "var(--admin-text)",
+                        letterSpacing: "-0.02em",
+                      }}
+                    >
+                      {formatBdt(order.amountTotal)}
+                    </strong>
                   </div>
-                  <div className="font-bold whitespace-nowrap">
-                    {formatBdt(order.amountTotal)}
-                  </div>
+
+                  <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 8 }}>
+                    {items.map((item, index) => (
+                      <li
+                        key={`${item.productSlug}-${index}`}
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          gap: 8,
+                          fontSize: 13,
+                        }}
+                      >
+                        <span
+                          style={{
+                            color: "var(--admin-text-2)",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {item.productName}{" "}
+                          <span style={{ color: "var(--admin-text)", fontWeight: 700 }}>
+                            ×{item.quantity}
+                          </span>
+                        </span>
+                        <span style={{ color: "var(--admin-text)", fontWeight: 650, whiteSpace: "nowrap" }}>
+                          {formatBdt(item.unitPrice)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                
-                <ul className="space-y-3 flex-1 mb-6">
-                  {items.map((item, index) => (
-                    <li key={`${item.productSlug}-${index}`} className="flex justify-between text-sm">
-                      <span className="text-muted-foreground truncate mr-2">
-                        {item.productName} <span className="text-foreground font-medium">x{item.quantity}</span>
-                      </span>
-                      <span className="font-medium shrink-0">{formatBdt(item.unitPrice)}</span>
-                    </li>
-                  ))}
-                </ul>
-                
-                <div className="pt-4 border-t mt-auto space-y-4">
-                  <ActionForm action={updateOrderStatusAction} className="flex gap-3">
+
+                {/* Card footer */}
+                <div
+                  style={{
+                    padding: "16px 20px",
+                    borderTop: "1px solid var(--admin-border)",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 10,
+                  }}
+                >
+                  <ActionForm action={updateOrderStatusAction} className="flex gap-2">
                     <input type="hidden" name="id" value={order.id} />
-                    <div className="flex-1">
+                    <div style={{ flex: 1 }}>
                       <Select name="fulfillmentStatus" defaultValue={order.fulfillmentStatus}>
-                        <SelectTrigger className="w-full">
+                        <SelectTrigger className="admin-input w-full" style={{ height: "auto" }}>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -119,25 +255,55 @@ export default async function AdminOrdersPage(props: { searchParams: Promise<{ q
                     </div>
                     <SubmitButton label="Update" />
                   </ActionForm>
-                  <Link href={`/admin/orders/${order.id}`} className={buttonVariants({ variant: "outline", className: "w-full" })}>
-                    <Eye className="w-4 h-4 mr-2" />
+
+                  <Link
+                    href={`/admin/orders/${order.id}`}
+                    className="admin-btn admin-btn-secondary"
+                    style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, width: "100%", textDecoration: "none" }}
+                  >
+                    <Eye style={{ width: 14, height: 14 }} />
                     View Details
                   </Link>
                 </div>
-              </CardContent>
-            </Card>
-          );
-        }))}
+              </div>
+            );
+          })
+        )}
       </div>
 
+      {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-2 pt-4 border-t">
-          <Link href={`/admin/orders?page=${page - 1}${query ? `&query=${query}` : ""}`} className={buttonVariants({ variant: "outline", size: "icon", className: page <= 1 ? "pointer-events-none opacity-50" : "" })}>
-            <ChevronLeft className="h-4 w-4" />
+        <div className="admin-pagination">
+          <Link
+            href={`/admin/orders?page=${page - 1}${query ? `&query=${query}` : ""}`}
+            className="admin-btn admin-btn-secondary admin-btn-icon"
+            style={{
+              opacity: page <= 1 ? 0.4 : 1,
+              pointerEvents: page <= 1 ? "none" : "auto",
+              textDecoration: "none",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <ChevronLeft style={{ width: 16, height: 16 }} />
           </Link>
-          <span className="text-sm font-medium">Page {page} of {totalPages}</span>
-          <Link href={`/admin/orders?page=${page + 1}${query ? `&query=${query}` : ""}`} className={buttonVariants({ variant: "outline", size: "icon", className: page >= totalPages ? "pointer-events-none opacity-50" : "" })}>
-            <ChevronRight className="h-4 w-4" />
+          <span style={{ fontSize: 13, fontWeight: 600, color: "var(--admin-text-2)" }}>
+            Page {page} of {totalPages}
+          </span>
+          <Link
+            href={`/admin/orders?page=${page + 1}${query ? `&query=${query}` : ""}`}
+            className="admin-btn admin-btn-secondary admin-btn-icon"
+            style={{
+              opacity: page >= totalPages ? 0.4 : 1,
+              pointerEvents: page >= totalPages ? "none" : "auto",
+              textDecoration: "none",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <ChevronRight style={{ width: 16, height: 16 }} />
           </Link>
         </div>
       )}

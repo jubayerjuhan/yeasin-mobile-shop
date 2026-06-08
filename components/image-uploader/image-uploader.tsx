@@ -69,7 +69,7 @@ export function ImageUploader({ name, defaultValue = "", className }: ImageUploa
         </div>
       ) : (
         <div
-          className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center text-center hover:bg-muted/50 transition-colors cursor-pointer"
+          className="relative flex flex-col items-center justify-center p-10 text-center border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-300 bg-background/40 border-border/60 hover:bg-muted/40 hover:border-primary/50 group overflow-hidden"
           onClick={() => fileInputRef.current?.click()}
           onDrop={(e) => {
             e.preventDefault();
@@ -78,13 +78,20 @@ export function ImageUploader({ name, defaultValue = "", className }: ImageUploa
           }}
           onDragOver={(e) => e.preventDefault()}
         >
-          {isUploading ? (
-            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-          ) : (
-            <UploadCloud className="w-8 h-8 text-muted-foreground mb-2" />
-          )}
-          <p className="text-sm font-medium">Click or drag image here</p>
-          <p className="text-xs text-muted-foreground mt-1">Supports JPG, PNG, WEBP</p>
+          <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+          <div className="w-14 h-14 mb-4 rounded-full bg-muted/80 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 group-hover:bg-primary/20 group-hover:text-primary shadow-sm border border-border/50">
+            {isUploading ? (
+              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground group-hover:text-primary" />
+            ) : (
+              <UploadCloud className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
+            )}
+          </div>
+          <p className="text-[15px] font-semibold text-foreground mb-1">
+            {isUploading ? "Uploading..." : "Click to upload or drag and drop"}
+          </p>
+          <p className="text-[13px] text-muted-foreground font-medium">
+            SVG, PNG, JPG, or WEBP (max. 5MB)
+          </p>
         </div>
       )}
       

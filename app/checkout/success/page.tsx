@@ -23,17 +23,13 @@ export default async function SuccessPage({
   return (
     <section className="section status-page">
       <div className="status-card">
-        <p className="eyebrow">Payment success</p>
-        <h1 className="page-title">Stripe checkout completed.</h1>
+        <p className="eyebrow">Order Confirmed</p>
+        <h1 className="page-title">Thank you for your purchase!</h1>
         <p>
-          Payment status is currently recorded as <strong>{paymentStatus}</strong>.
-          The order is now visible in the admin panel for fulfillment tracking.
+          Your order has been received successfully. We are currently processing it and will contact you shortly to confirm your delivery details.
         </p>
-        <Link className="btn ghost" href="/admin/orders">
-          View Admin Orders
-        </Link>
         <Link className="btn primary" href="/">
-          Back to Store
+          Continue Shopping
         </Link>
       </div>
     </section>
