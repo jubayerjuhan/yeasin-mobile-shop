@@ -1,0 +1,16 @@
+# AI Assistant Rules
+
+## Component Organization
+
+When creating or refactoring components in the `components/` directory, always organize them into appropriate categorized subdirectories based on their type, rather than placing them directly in the root of the `components/` folder. 
+
+For example, use subfolders like:
+- `button/` (for buttons like `add-to-cart-button.tsx`, `checkout-button.tsx`)
+- `drawer/` (for drawers like `cart-drawer.tsx`)
+- `sections/` (for larger page sections like `catalog-section.tsx`)
+- `card/` (for card components like `product-card.tsx`)
+- `layout/` (for layout components like `store-header.tsx`)
+- `provider/` (for context providers like `store-provider.tsx`)
+- `views/` (for page-level client components like `cart-page-client.tsx`)
+
+Always update all relevant import paths across the project when moving or creating these components.
